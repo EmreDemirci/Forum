@@ -10,31 +10,32 @@ class ReadThreadsTest extends TestCase
 {
     use DatabaseMigrations;
 
+    public function setUp(){
+        parent::setUp();
+        $this->thread = factory('App\Thread')->create();
+    }
+
     /** @test */
     public function a_user_can_browse_threads()
     {
-        $thread = factory('App\Thread')->create();
-
         $this->get('/threads')
-            ->assertSee($thread->title);
+            ->assertSee($this->thread->title);
     }
 
     /** @test */
     public function a_user_can_view_any_thread()
     {
-        $thread = factory('App\Thread')->create();
-
-        $this->get('/threads/'.$thread->id)
-            ->assertSee($thread->title);
+        $this->get($this->thread->path())
+            ->assertSee($this->thread->title);
     }
 
     /** @test */
     function a_thread_has_replies()
     {
-        $threadsReply = factory('App\Reply')->create();
-        $anotherReply = factory('App\Reply')->create(['thread_id', '=>', '2']);
+        $threadsReply = factory('App\Reply')->create(['thread_id' => $this->thread->id]);
+        $anotherReply = factory('App\Reply')->create(['thread_id' => 2]);
 
-        $this->get('/threads/1')
+        $this->get($this->thread->path())
             ->assertSee($threadsReply->body)
             ->assertDontSee($anotherReply->body);
     }
